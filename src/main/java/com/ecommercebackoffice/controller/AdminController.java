@@ -1,11 +1,11 @@
 package com.ecommercebackoffice.controller;
 
+import com.ecommercebackoffice.dto.AdminLoginRequest;
+import com.ecommercebackoffice.dto.AdminPageResponse;
 import com.ecommercebackoffice.dto.AdminSignupRequest;
 import com.ecommercebackoffice.service.AdminService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/admins")
@@ -24,5 +24,34 @@ public class AdminController {
     @PostMapping("/signup")
     public void signup(@RequestBody AdminSignupRequest request) {
         adminService.signup(request);
+    }
+
+    // 관리자 로그인
+    @PostMapping("/login")
+    public void login(@RequestBody AdminLoginRequest request,
+                      HttpServletRequest httpRequest) {
+        // 관리자 로그인 처리
+        adminService.login(request, httpRequest);
+    }
+
+    // 관리자 로그아웃
+    @PostMapping("/logout")
+    public void logout(HttpServletRequest httpRequest) {
+        // 관리자 로그아웃 처리
+        adminService.logout(httpRequest);
+    }
+
+    // 관리자 리스트 조회
+    @GetMapping
+    public AdminPageResponse getAdminList(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest httpRequest) {
+
+        // 관리자 리스트 조회 결과 반환
+        return adminService.getAdminList(keyword, role, status, page, size, httpRequest);
     }
 }

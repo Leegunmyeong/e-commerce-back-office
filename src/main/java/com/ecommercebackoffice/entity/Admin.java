@@ -1,11 +1,19 @@
 package com.ecommercebackoffice.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import org.hibernate.annotations.SoftDelete;
+import org.hibernate.type.YesNoConverter;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "admins")
+@SoftDelete(
+        columnName = "is_delete",
+        converter = YesNoConverter.class
+)
+@Getter
 public class Admin {
 
     // 속성
@@ -38,9 +46,6 @@ public class Admin {
     @Column(nullable = true)
     private LocalDateTime adminApprovedAt;
 
-    @Column(nullable = false)
-    private Boolean isDelete;
-
     // 생성자
     public Admin() {
 
@@ -55,7 +60,6 @@ public class Admin {
         this.adminPhoneNumber = adminPhoneNumber;
         this.adminRole = adminRole;
         this.adminRegisteredAt = LocalDateTime.now();
-        this.isDelete = false;
         this.adminStatus = "Pending Approval";
     }
 }
