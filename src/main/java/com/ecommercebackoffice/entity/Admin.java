@@ -53,7 +53,7 @@ public class Admin {
 
     public Admin(String adminName, String adminEmail,
                  String password, String adminPhoneNumber,
-                 String adminRole, LocalDateTime adminApprovedAt) {
+                 String adminRole) {
         this.adminName = adminName;
         this.adminEmail = adminEmail;
         this.password = password;
@@ -61,6 +61,5 @@ public class Admin {
         this.adminRole = adminRole;
         this.adminRegisteredAt = LocalDateTime.now();
         this.adminStatus = "Pending Approval";
-        this.adminApprovedAt = adminApprovedAt;
     }
 }
