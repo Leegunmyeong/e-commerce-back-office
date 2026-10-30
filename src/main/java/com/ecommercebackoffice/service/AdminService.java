@@ -412,4 +412,72 @@ public class AdminService {
                 responses
         );
     }
+
+    // 관리자 상세 조회
+    public AdminListResponse getAdminDetail(
+            Long adminId,
+            HttpServletRequest httpRequest) {
+
+        // 기존 세션 가져오기
+        HttpSession session = httpRequest.getSession(false);
+
+        // 로그인 정보가 없으면 상세 조회 차단
+        if (session == null || session.getAttribute("adminId") == null) {
+            throw new ServiceException(
+                    HttpStatus.UNAUTHORIZED,
+                    "로그인이 필요합니다."
+            );
+        }
+
+        // 세션에 저장된 로그인 관리자 ID 가져오기
+        Long loginAdminId = (Long) session.getAttribute("adminId");
+
+        // 로그인한 관리자 ID로 DB에서 관리자 정보 조회
+        Optional<Admin> loginAdminOptional = adminRepository.findById(loginAdminId);
+
+        // 로그인한 관리자 정보가 없으면 접근 차단
+        if (loginAdminOptional.isEmpty()) {
+            throw new ServiceException(
+                    HttpStatus.UNAUTHORIZED,
+                    "존재하지 않는 관리자 계정입니다."
+            );
+        }
+
+        // DB에서 조회한 로그인 관리자 정보 가져오기
+        Admin loginAdmin = loginAdminOptional.get();
+
+        // 활성 상태가 아닌 관리자는 상세 조회 차단
+        if (!"Active".equals(loginAdmin.getAdminStatus())) {
+            throw new ServiceException(
+                    HttpStatus.FORBIDDEN,
+                    "활성화되지 않은 관리자 계정입니다."
+            );
+        }
+
+        // 요청받은 관리자 ID로 DB에서 관리자 정보 조회
+        Optional<Admin> adminOptional = adminRepository.findById(adminId);
+
+        // 조회할 관리자 정보가 없으면 404 오류 발생
+        if (adminOptional.isEmpty()) {
+            throw new ServiceException(
+                    HttpStatus.NOT_FOUND,
+                    "존재하지 않는 관리자 계정입니다."
+            );
+        }
+
+        // 조회한 관리자 정보 가져오기
+        Admin admin = adminOptional.get();
+
+        // 조회한 관리자 정보를 DTO로 변환하여 반환
+        return new AdminListResponse(
+                admin.getId(),
+                admin.getAdminName(),
+                admin.getAdminEmail(),
+                admin.getAdminPhoneNumber(),
+                admin.getAdminRole(),
+                admin.getAdminStatus(),
+                admin.getAdminRegisteredAt(),
+                admin.getAdminApprovedAt()
+        );
+    }
 }

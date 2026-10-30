@@ -1,5 +1,6 @@
 package com.ecommercebackoffice.controller;
 
+import com.ecommercebackoffice.dto.AdminListResponse;
 import com.ecommercebackoffice.dto.AdminLoginRequest;
 import com.ecommercebackoffice.dto.AdminPageResponse;
 import com.ecommercebackoffice.dto.AdminSignupRequest;
@@ -53,5 +54,15 @@ public class AdminController {
 
         // 관리자 리스트 조회 결과 반환
         return adminService.getAdminList(keyword, role, status, page, size, httpRequest);
+    }
+
+    // 관리자 상세 조회
+    @GetMapping("/{adminId}")
+    public AdminListResponse getAdminDetail(
+            @PathVariable Long adminId,
+            HttpServletRequest httpRequest) {
+
+        // 관리자 상세 조회
+        return adminService.getAdminDetail(adminId, httpRequest);
     }
 }
