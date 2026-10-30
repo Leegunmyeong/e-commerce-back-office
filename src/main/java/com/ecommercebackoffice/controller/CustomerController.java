@@ -20,13 +20,13 @@ public class CustomerController {
      */
     @GetMapping
     public ResponseEntity<CustomerListResponse> getCustomers(
-            @RequestParam(required = false) String name, // keyword 대신 name으로 받기
+            @RequestParam(required = false) String keyword, // name -> keyword로 변경
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "customerName") String sortBy,
             @RequestParam(required = false) String customerStatus
     ) {
-        CustomerListResponse response = customerService.getCustomers(name, page, size, sortBy, customerStatus);
+        CustomerListResponse response = customerService.getCustomers(keyword, page, size, sortBy, customerStatus);
         return ResponseEntity.ok(response);
     }
 
