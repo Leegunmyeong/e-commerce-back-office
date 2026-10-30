@@ -22,10 +22,8 @@ import org.springframework.util.StringUtils;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
-
+/**jpql** -> findByCustomerNameContainingAndIsDeleteFalse
     /**
-     * jpql** -> findByCustomerNameContainingAndIsDeleteFalse
-     * /**
      * 고객 목록 및 검색 조회
      */
     public CustomerListResponse getCustomers(String name, int page, int size, String sortBy, String customerStatus) {
@@ -41,7 +39,6 @@ public class CustomerService {
 
         return new CustomerListResponse(customerPage);
     }
-
     /**
      * 특정 고객 상세 조회
      */
@@ -62,19 +59,18 @@ public class CustomerService {
                 customer.getCustomerRegisteredAt()
         );
     }
-}
     /**
      * 특정 고객 정보 수정
      */
-//    @Transactional
-//    public void updateCustomer(Long id, CustomerUpdateRequest request) {
-//        Customer customer = customerRepository.findById(id)
-//                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "해당 고객을 찾을 수 없습니다."));
-//
-//        if (customer.getIsDelete()) {
-//            throw new ServiceException(HttpStatus.BAD_REQUEST, "삭제된 고객의 정보는 수정할 수 없습니다.");
-//        }
-//
-//        customer.updateCustomerInfo(request.getName(), request.getEmail(), request.getPhone());
-//    }
-//}
+    @Transactional
+    public void updateCustomer(Long id, CustomerUpdateRequest request) {
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "해당 고객을 찾을 수 없습니다."));
+
+        if (customer.getIsDelete()) {
+            throw new ServiceException(HttpStatus.BAD_REQUEST, "삭제된 고객의 정보는 수정할 수 없습니다.");
+        }
+
+        customer.updateCustomerInfo(request.getName(), request.getEmail(), request.getPhone());
+    }
+}
