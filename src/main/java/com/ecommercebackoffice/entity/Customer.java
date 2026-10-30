@@ -32,6 +32,7 @@ public class Customer {
 
     @Column(name = "is_delete", nullable = false)
     private Boolean isDelete;
+
     /**
      * 고객 정보 수정 메서드
      */
