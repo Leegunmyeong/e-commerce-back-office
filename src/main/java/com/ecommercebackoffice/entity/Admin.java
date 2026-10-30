@@ -24,7 +24,7 @@ public class Admin {
     @Column(length = 20, nullable = false)
     private String adminName;
 
-    @Column(length = 40, nullable = false)
+    @Column(length = 40, nullable = false, unique = true)
     private String adminEmail;
 
     @Column(length = 60, nullable = false)
