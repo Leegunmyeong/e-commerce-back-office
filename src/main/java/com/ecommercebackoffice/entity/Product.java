@@ -34,7 +34,7 @@ public class Product extends ProductBaseEntity {
     // 상품 가격
     @Column(name = "item_price", nullable = false)
     private Long itemPrice;
-    // 상품 수량(재고)
+    // 상품 수량
     @Column(name = "item_quantity", nullable = false)
     private Long itemQuantity;
     // 상품 재고 상태
@@ -100,6 +100,11 @@ public class Product extends ProductBaseEntity {
             this.itemStockStatus = ProductStatus.SALE;
         }
     }
+
+
+
+
+
 
     // 상품 단종 여부 변경
     public void updateDiscontinuedStatus(Boolean itemDiscontinuedStatus) {
