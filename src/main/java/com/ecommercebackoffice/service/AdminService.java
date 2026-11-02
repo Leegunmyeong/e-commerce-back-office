@@ -1,10 +1,7 @@
 package com.ecommercebackoffice.service;
 
 import com.ecommercebackoffice.config.PasswordEncoder;
-import com.ecommercebackoffice.dto.AdminListResponse;
-import com.ecommercebackoffice.dto.AdminLoginRequest;
-import com.ecommercebackoffice.dto.AdminPageResponse;
-import com.ecommercebackoffice.dto.AdminSignupRequest;
+import com.ecommercebackoffice.dto.*;
 import com.ecommercebackoffice.entity.Admin;
 import com.ecommercebackoffice.exception.ServiceException;
 import com.ecommercebackoffice.repository.AdminRepository;
@@ -67,32 +64,27 @@ public class AdminService {
             );
         }
 
-        // 전화번호에 포함된 하이픈과 공백 제거
-        phoneNumber = phoneNumber.replace("-", "").replace(" ", "");
+        // 전화번호에 포함된 하이폰과 공백 제거
+        phoneNumber = phoneNumber.replace("-","").replace(" ","");
 
-        // 국내 휴대전화 번호를 국가번호(+82)가 포함된 형식으로 변환
-        if (phoneNumber.startsWith("010") && phoneNumber.length() == 11) {
-            phoneNumber = "+82" + phoneNumber.substring(1);
-        }
-
-        // 전화번호가 +로 시작하지 않으면 400 상태 코드로 예외 발생
-        if (!phoneNumber.startsWith("+")) {
+        // 전화번호가 010으로 시작하지 않으면 400 상태 코드로 예외 발생
+        if (!phoneNumber.startsWith("010")) {
             throw new ServiceException(
                     HttpStatus.BAD_REQUEST,
-                    "전화번호는 국가번호를 포함해야 합니다."
+                    "전화번호는 010으로 시작해야 합니다."
             );
         }
 
-        // 전화번호 길이가 국제 형식의 허용 범위를 벗어나면 400 상태 코드로 예외 발생
-        if (phoneNumber.length() < 3 || phoneNumber.length() > 16) {
+        // 전화번호가 11자리가 아니면 400 상태 코드로 예외 발생
+        if (phoneNumber.length() != 11) {
             throw new ServiceException(
                     HttpStatus.BAD_REQUEST,
-                    "전화번호는 국가번호를 포함해 최대 15자리 숫자로 입력해야 합니다."
+                    "전화번호는 11자리 숫자로 입력해야 합니다."
             );
         }
 
-        // 국가번호(+) 뒤에 숫자가 아닌 문자가 있는지 검사
-        for (int i = 1; i < phoneNumber.length(); i++) {
+        // 전화번호에 숫자가 아닌 문자가 있는지 검사
+        for (int i = 0; i < phoneNumber.length(); i++) {
 
             // 숫자 0~9 범위를 벗어나면 400 상태 코드로 예외 발생
             if (phoneNumber.charAt(i) < '0' || phoneNumber.charAt(i) > '9') {
@@ -102,6 +94,11 @@ public class AdminService {
                 );
             }
         }
+
+        // 검증된 전화번호를 하이폰이 포함된 형식으로 변환
+        phoneNumber = phoneNumber.substring(0,3) + "-"
+                + phoneNumber.substring(3,7) + "-"
+                + phoneNumber.substring(7,11);
 
         // 관리자 이메일을 입력하지 않으면 400 상태 코드로 예외 발생
         if (request.getAdminEmail() == null || request.getAdminEmail().isBlank()) {
@@ -339,6 +336,25 @@ public class AdminService {
         // 페이지 번호와 페이지당 개수를 설정
         PageRequest pageable = PageRequest.of(page - 1, size, sort);
 
+        // 한글 관리자 역할을 영문 코드로 변환
+        if ("슈퍼관리자".equals(role)) {
+            role = "Super_Admin";
+        } else if ("CS관리자".equals(role)) {
+            role = "CS_Admin";
+        } else if ("운영관리자".equals(role)) {
+            role = "Operation_Admin";
+        }
+
+        // 한글 관리자 상태를 영문 코드로 변환
+        if ("승인대기".equals(status)) {
+            status = "Pending Approval";
+        } else if ("승인거부".equals(status)) {
+            status = "Approval Denied";
+        } else if ("활성".equals(status)) {
+            status = "Active";
+        } else if ("비활성".equals(status)) {
+            status = "Deactivation";
+        }
 
         // 관리자 페이지 조회 결과를 저장
         Page<Admin> adminPage;
@@ -432,7 +448,7 @@ public class AdminService {
         // 세션에 저장된 로그인 관리자 ID 가져오기
         Long loginAdminId = (Long) session.getAttribute("adminId");
 
-        // 로그인한 관리자 ID로 DB에서 관리자 정보 조회
+        // 로그인한 관리자 정보 조회
         Optional<Admin> loginAdminOptional = adminRepository.findById(loginAdminId);
 
         // 로그인한 관리자 정보가 없으면 접근 차단
@@ -478,6 +494,157 @@ public class AdminService {
                 admin.getAdminStatus(),
                 admin.getAdminRegisteredAt(),
                 admin.getAdminApprovedAt()
+        );
+    }
+
+    // 관리자 가입 승인 및 거부
+    public AdminApprovalResponse updateApprovalState(
+            Long adminId,
+            AdminApprovalRequest request,
+            HttpServletRequest httpRequest) {
+
+        // 기존 세션 가져오기
+        HttpSession session = httpRequest.getSession(false);
+
+        // 로그인 정보가 없으면 승인 및 거부 요청 차단
+        if (session == null || session.getAttribute("adminId") == null) {
+            throw new ServiceException(
+                    HttpStatus.UNAUTHORIZED,
+                    "로그인이 필요합니다."
+            );
+        }
+
+        // 로그인한 관리자 ID 가져오기
+        Long loginAdminId = (Long) session.getAttribute("adminId");
+
+        // 로그인한 관리자 정보 조회
+        Optional<Admin> loginAdminOptional = adminRepository.findById(loginAdminId);
+
+        // 로그인한 관리자 정보가 없으면 접근 차단
+        if (loginAdminOptional.isEmpty()) {
+            throw new ServiceException(
+                    HttpStatus.UNAUTHORIZED,
+                    "존재하지 않는 관리자 계정입니다."
+            );
+        }
+
+        // DB에서 조회한 로그인 관리자 정보 가져오기
+        Admin loginAdmin = loginAdminOptional.get();
+
+        // 활성 상태가 아닌 관리자는 승인 및 거부 요청 차단
+        if (!"Active".equals(loginAdmin.getAdminStatus())) {
+            throw new ServiceException(
+                    HttpStatus.FORBIDDEN,
+                    "활성화되지 않은 관리자 계정입니다."
+            );
+        }
+
+        // 슈퍼관리자가 아니면 승인 및 거부 요청 차단
+        if (!"Super_Admin".equals(loginAdmin.getAdminRole())) {
+            throw new ServiceException(
+                    HttpStatus.FORBIDDEN,
+                    "슈퍼관리자만 승인 및 거부할 수 있습니다."
+            );
+        }
+
+        // 승인 또는 거부할 관리자 정보 조회
+        Optional<Admin> adminOptional = adminRepository.findById(adminId);
+
+        // 승인 또는 거부할 관리자 정보가 없으면 404 오류 발생
+        if (adminOptional.isEmpty()) {
+            throw new ServiceException(
+                    HttpStatus.NOT_FOUND,
+                    "존재하지 않는 관리자 계정입니다."
+            );
+        }
+
+        // 승인 또는 거부할 대상 관리자 정보 가져오기
+        Admin admin = adminOptional.get();
+
+        // 대상 관리자가 승인 대기 상태인지 확인
+        if (!"Pending Approval".equals(admin.getAdminStatus())) {
+            throw new ServiceException(
+                    HttpStatus.CONFLICT,
+                    "승인 대기 상태인 관리자만 승인 및 거부할 수 있습니다."
+            );
+        }
+
+        // 요청한 승인 또는 거부 상태값 가져오기
+        String status = request.getStatus();
+
+        // 승인 또는 거부할 상태값을 입력하지 않으면 400 오류 발생
+        if (status == null || status.isBlank()) {
+            throw new ServiceException(
+                    HttpStatus.BAD_REQUEST,
+                    "승인 또는 거부 여부를 입력해야 합니다."
+            );
+        }
+
+        // 한글로 입력도니 승인 또는 거부 상태값을 영문 코드로 변환
+        if (status.equals("승인")) {
+            status = "Active";
+        } else if (status.equals("거부")) {
+            status = "Approval Denied";
+        }
+
+        // 허용되지 않은 승인 또는 거부 상태값이면 400 오류 발생
+        if (!status.equals("Active") && !status.equals("Approval Denied")) {
+            throw new ServiceException(
+                    HttpStatus.BAD_REQUEST,
+                    "승인, 거부, Active 또는 Approval Denied만 입력할 수 있습니다."
+            );
+        }
+
+        // 관리자 가입 승인 요청 확인
+        if (status.equals("Active")) {
+
+            // 관리자 가입 승인 처리
+            admin.approve();
+
+            // 변경된 관리자 정보 DB에 저장
+            adminRepository.save(admin);
+
+            // 관리자 가입 거부 요청 확인
+        } else if (status.equals("Approval Denied")) {
+
+            // 요청한 관리자 가입 거부 사유 가져오기
+            String rejectReason = request.getRejectReason();
+
+            // 거부 사유를 입력하지 않으면 400 오류 발생
+            if (rejectReason == null || rejectReason.isBlank()) {
+                throw new ServiceException(
+                        HttpStatus.BAD_REQUEST,
+                        "관리자 가입 거부 사유를 입력해야 합니다."
+                );
+            }
+
+            // 거부 사유가 255자를 초과하면 400 오류 발생
+            if (rejectReason.length() > 255) {
+                throw new ServiceException(
+                        HttpStatus.BAD_REQUEST,
+                        "관리자 가입 거부 사유는 255자 이하여야 합니다."
+                );
+            }
+
+            // 관리자 가입 거부 처리
+            admin.reject(rejectReason);
+
+            // 변경된 관리자 정보 DB에 저장
+            adminRepository.save(admin);
+        }
+        // 처리된 관리자 상태에 따라 성공 메시지 설정
+        String message = "관리자 가입이 거부되었습니다.";
+        if ("Active".equals(admin.getAdminStatus())) {
+            message = "관리자 가입이 승인되었습니다.";
+        }
+
+        // 변경된 관리자 정보를 응답 DTO에 담아 반환
+        return new AdminApprovalResponse(
+                message,
+                admin.getId(),
+                admin.getAdminStatus(),
+                admin.getAdminApprovedAt(),
+                admin.getAdminRejectReason()
         );
     }
 }
