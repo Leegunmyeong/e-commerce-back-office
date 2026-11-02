@@ -30,12 +30,14 @@ public class Admin {
     @Column(length = 60, nullable = false)
     private String password;
 
+    // 관리자 전화번호 (010-1234-5678 형식)
     @Column(length = 20, nullable = false)
     private String adminPhoneNumber;
 
     @Column(length = 20, nullable = false)
     private String adminRole;
 
+    // 관리자 상태 (가입 대기, 승인 거부, 활성, 비활성)
     @Column(length = 20, nullable = false)
     private String adminStatus;
 
@@ -45,6 +47,10 @@ public class Admin {
     // 관리자 승인일
     @Column(nullable = true)
     private LocalDateTime adminApprovedAt;
+
+    // 관리자 거부 사유
+    @Column(length = 255, nullable = true)
+    private String adminRejectReason;
 
     // 생성자
     public Admin() {
@@ -61,5 +67,17 @@ public class Admin {
         this.adminRole = adminRole;
         this.adminRegisteredAt = LocalDateTime.now();
         this.adminStatus = "Pending Approval";
+    }
+
+    // 관리자 가입 승인 처리
+    public void approve() {
+        this.adminStatus = "Active";
+        this.adminApprovedAt = LocalDateTime.now();
+    }
+
+    // 관리자 가입 거부 처리
+    public void reject(String adminRejectReason) {
+        this.adminStatus = "Approval Denied";
+        this.adminRejectReason = adminRejectReason;
     }
 }

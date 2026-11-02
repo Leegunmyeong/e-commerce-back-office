@@ -41,4 +41,16 @@ public class Customer {
         this.customerEmail = email;
         this.phoneNumber = phone;
     }
+    /**
+     * 고객 상태 변경 메서드
+     */
+    public void updateCustomerStatus(String status) {
+        this.customerStatus = status;
+    }
+    /**
+     * 고객 소프트 삭제 메서드
+     */
+    public void deleteCustomer() {
+        this.isDelete = true;
+    }
 }
