@@ -334,9 +334,11 @@ public class ProductService {
         Product product = productRepository.findById(productId).orElseThrow(
                 () -> new ServiceException(HttpStatus.NOT_FOUND, "존재하지 않는 상품입니다.")
         );
-        // 3. 상품이 단종 상태라면 신규 주문 불가능
+        // 3. 상품이 단종 상태 및 품절 상태인 경우라면 신규 주문 불가능
         if (product.getItemDiscontinuedStatus()) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, "단종된 상품은 주문할 수 없습니다.");
+        } else if (product.getItemStockStatus().equals("SOLD_OUT")) {
+            throw new ServiceException(HttpStatus.BAD_REQUEST, "품절된 상품은 주문할 수 없습니다.");
         }
         // 4. 현재 상품 재고 수량 가져오기
         Long currentItemQuantity = product.getItemQuantity();
