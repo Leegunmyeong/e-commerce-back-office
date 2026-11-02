@@ -26,7 +26,7 @@ public class AdminService {
     private final PasswordEncoder passwordEncoder;
 
     // 관리자 회원가입 처리
-    public void signup(AdminSignupRequest request) {
+    public AdminSignupResponse signup(AdminSignupRequest request) {
 
         // 관리자 이름을 입력하지 않으면 400 상태 코드로 예외 발생
         if (request.getAdminName() == null || request.getAdminName().isBlank()) {
@@ -207,10 +207,21 @@ public class AdminService {
 
         // 관리자 정보 DB에 저장
         adminRepository.save(admin);
+
+        // 관리자 가입 신청 완료 메시지
+        String message = "관리자 가입 신청이 완료되었습니다. 현재 승인 대기 중이며, 승인 완료 후 이용 가능합니다.";
+
+        //가입한 관리자 정보를 응답 DTO에 담아 반환
+        return new AdminSignupResponse(
+                message,
+                admin.getId(),
+                admin.getAdminStatus(),
+                admin.getAdminEmail()
+        );
     }
 
     // 관리자 로그인
-    public void login(AdminLoginRequest request, HttpServletRequest httpRequest) {
+    public AdminLoginResponse login(AdminLoginRequest request, HttpServletRequest httpRequest) {
 
         // 이메일로 관리자 정보 조회
         Optional<Admin> adminOptional =
@@ -255,6 +266,15 @@ public class AdminService {
 
         // 세션에 관리자 정보 저장
         session.setAttribute("adminId", admin.getId());
+
+        // 로그인 성공 메시지
+        String message = "관리자 로그인에 성공했습니다.";
+
+        // 로그인한 관리자 정보를 응답 DTO에 담아 반환
+        return new AdminLoginResponse(
+                message,
+                admin.getId()
+        );
     }
 
     // 관리자 로그아웃

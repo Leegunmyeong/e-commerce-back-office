@@ -20,16 +20,16 @@ public class AdminController {
     // 기능
     // 관리자 회원가입
     @PostMapping("/signup")
-    public void signup(@RequestBody AdminSignupRequest request) {
-        adminService.signup(request);
+    public AdminSignupResponse signup(@RequestBody AdminSignupRequest request) {
+        return adminService.signup(request);
     }
 
     // 관리자 로그인
     @PostMapping("/login")
-    public void login(@RequestBody AdminLoginRequest request,
+    public AdminLoginResponse login(@RequestBody AdminLoginRequest request,
                       HttpServletRequest httpRequest) {
         // 관리자 로그인 처리
-        adminService.login(request, httpRequest);
+        return adminService.login(request, httpRequest);
     }
 
     // 관리자 로그아웃
