@@ -1,9 +1,6 @@
 package com.ecommercebackoffice.controller;
 
-import com.ecommercebackoffice.dto.AdminListResponse;
-import com.ecommercebackoffice.dto.AdminLoginRequest;
-import com.ecommercebackoffice.dto.AdminPageResponse;
-import com.ecommercebackoffice.dto.AdminSignupRequest;
+import com.ecommercebackoffice.dto.*;
 import com.ecommercebackoffice.service.AdminService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
@@ -64,5 +61,16 @@ public class AdminController {
 
         // 관리자 상세 조회
         return adminService.getAdminDetail(adminId, httpRequest);
+    }
+
+    // 관리자 가입 승인 및 거부
+    @PatchMapping("/{adminId}/approvalstate")
+    public void updateApprovalState(
+            @PathVariable Long adminId,
+            @RequestBody AdminApprovalRequest request,
+            HttpServletRequest httpRequest) {
+
+        // 관리자 승인 및 거부 서비스 호출
+        adminService.updateApprovalState(adminId, request, httpRequest);
     }
 }
