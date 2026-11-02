@@ -26,7 +26,8 @@ public class OrderService {
 
     //생성자
     public OrderService(OrderRepository orderRepository, CustomerRepository customerRepository,
-                        ProductRepository productRepository, AdminRepository adminRepository, ProductService productService) {
+                        ProductRepository productRepository, AdminRepository adminRepository,
+                        ProductService productService) {
         this.orderRepository = orderRepository;
         this.customerRepository = customerRepository;
         this.productRepository = productRepository;
@@ -72,22 +73,5 @@ public class OrderService {
         OrderCreateResponseDto responseDto = new OrderCreateResponseDto(id, orderStatus, totalPrice, message);
         return responseDto;
 
-    }
-
-    // 2. 주문 리스트 조회
-    public void getOrder(String keyword, OrderStatus status, int page, int size, String soryBy, String direction) {
-
-        // 1. 정렬 방향 설정
-        Sort.Direction sortDirection = direction.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-
-        /*
-        * 2. 정렬 순서 기준(수량, 금액, 주문일)
-        * 2-1. 만약에 수량이 기준이라면 수량 기준으로 정렬 방향 설정
-        * 2-2. 만약에 금액이 기준이라면 금액 기준으로 정렬 방향 설정
-        */
-
-
-
-        
     }
 }

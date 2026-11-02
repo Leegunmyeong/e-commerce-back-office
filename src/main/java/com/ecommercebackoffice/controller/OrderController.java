@@ -43,32 +43,4 @@ public class OrderController {
         return response;
 
     }
-
-
-    // 2. 주문 리스트 조회
-    @GetMapping
-    public void getOrders(
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) OrderStatus status,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String soryBy, // 정렬 기준
-            @RequestParam(defaultValue = "desc") String direction // 정렬 순서
-            ) {
-
-        // 1. 서비스 처리
-        orderService.getOrder(keyword,status,page,size,soryBy,direction);
-
-
-        // 2. 응답 객체 생성
-
-        // 3. 반환
-
-
-
-
-    }
-
-
-
 }
