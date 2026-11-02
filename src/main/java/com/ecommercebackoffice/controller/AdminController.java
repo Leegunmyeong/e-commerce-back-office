@@ -65,12 +65,12 @@ public class AdminController {
 
     // 관리자 가입 승인 및 거부
     @PatchMapping("/{adminId}/approvalstate")
-    public void updateApprovalState(
+    public AdminApprovalResponse updateApprovalState(
             @PathVariable Long adminId,
             @RequestBody AdminApprovalRequest request,
             HttpServletRequest httpRequest) {
 
         // 관리자 승인 및 거부 서비스 호출
-        adminService.updateApprovalState(adminId, request, httpRequest);
+        return adminService.updateApprovalState(adminId, request, httpRequest);
     }
 }

@@ -345,6 +345,17 @@ public class AdminService {
             role = "Operation_Admin";
         }
 
+        // 한글 관리자 상태를 영문 코드로 변환
+        if ("승인대기".equals(status)) {
+            status = "Pending Approval";
+        } else if ("승인거부".equals(status)) {
+            status = "Approval Denied";
+        } else if ("활성".equals(status)) {
+            status = "Active";
+        } else if ("비활성".equals(status)) {
+            status = "Deactivation";
+        }
+
         // 관리자 페이지 조회 결과를 저장
         Page<Admin> adminPage;
 
@@ -487,7 +498,7 @@ public class AdminService {
     }
 
     // 관리자 가입 승인 및 거부
-    public void updateApprovalState(
+    public AdminApprovalResponse updateApprovalState(
             Long adminId,
             AdminApprovalRequest request,
             HttpServletRequest httpRequest) {
@@ -569,11 +580,18 @@ public class AdminService {
             );
         }
 
+        // 한글로 입력도니 승인 또는 거부 상태값을 영문 코드로 변환
+        if (status.equals("승인")) {
+            status = "Active";
+        } else if (status.equals("거부")) {
+            status = "Approval Denied";
+        }
+
         // 허용되지 않은 승인 또는 거부 상태값이면 400 오류 발생
         if (!status.equals("Active") && !status.equals("Approval Denied")) {
             throw new ServiceException(
                     HttpStatus.BAD_REQUEST,
-                    "Active 또는 Approval Denied만 입력할 수 있습니다."
+                    "승인, 거부, Active 또는 Approval Denied만 입력할 수 있습니다."
             );
         }
 
@@ -614,5 +632,19 @@ public class AdminService {
             // 변경된 관리자 정보 DB에 저장
             adminRepository.save(admin);
         }
+        // 처리된 관리자 상태에 따라 성공 메시지 설정
+        String message = "관리자 가입이 거부되었습니다.";
+        if ("Active".equals(admin.getAdminStatus())) {
+            message = "관리자 가입이 승인되었습니다.";
+        }
+
+        // 변경된 관리자 정보를 응답 DTO에 담아 반환
+        return new AdminApprovalResponse(
+                message,
+                admin.getId(),
+                admin.getAdminStatus(),
+                admin.getAdminApprovedAt(),
+                admin.getAdminRejectReason()
+        );
     }
 }
